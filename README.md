@@ -24,7 +24,7 @@ Versions of Internet Explorer prior to 10 have no support for multiple file uplo
 Requirements
 ============
 
-* Symfony2
+* Symfony3
 * jQuery
 * jQuery UI
 * Underscore
@@ -57,10 +57,10 @@ Symfony 3.*
 1) Add the following line to your composer.json require block:
     "dmitriynet/symfony3-file-uploader-bundle": "dev-master"
 
-    The standard symfony 2.2 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
+    The standard symfony 3 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
 ```
  "branch-alias": {
-            "dev-master": "2.2-dev"
+            "dev-master": "3.0-dev"
         }
 ```
 
