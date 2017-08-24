@@ -92,17 +92,24 @@ class FileUploader
             $size['upload_dir'] = $filePath . '/' . $size['folder'] . '/';
             $size['upload_url'] = $webPath . '/' . $size['folder'] . '/';
         }
+        unset($size);
 
         $originals = $options['originals'];
 
         $uploadDir = $filePath . '/' . $originals['folder'] . '/';
 
-        foreach ($sizes as &$size)
+        foreach ($sizes as &$s)
         {
-            @mkdir($size['upload_dir'], 0777, true);
+			if (!mkdir($s['upload_dir'], 0777, true) && !is_dir($s['upload_dir'])) {
+				throw new \Exception($s['upload_dir'] . "  folder does not created");
+			}
         }
+		unset($s);
 
-        @mkdir($uploadDir, 0777, true);
+		if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+			throw new \Exception($uploadDir . "  folder does not created");
+		}
+
         $upload_handler = new \PunkAve\FileUploaderBundle\BlueImp\UploadHandler(
             array(
                 'upload_dir' => $uploadDir, 

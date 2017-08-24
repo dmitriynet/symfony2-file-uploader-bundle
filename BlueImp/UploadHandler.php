@@ -17,7 +17,7 @@ class UploadHandler
 {
     protected $options;
 
-    function __construct($options=null) {
+    public function __construct($options=null) {
         $this->options = array(
             'script_url' => $this->getFullUrl().'/',
             'upload_dir' => dirname($_SERVER['SCRIPT_FILENAME']).'/files/',
@@ -114,7 +114,7 @@ class UploadHandler
     protected function get_file_objects() {
         return array_values(array_filter(array_map(
             array($this, 'get_file_object'),
-            scandir($this->options['upload_dir'])
+            scandir($this->options['upload_dir'], null)
         )));
     }
 
@@ -235,22 +235,23 @@ class UploadHandler
         }
         list($img_width, $img_height) = @getimagesize($uploaded_file);
         if (is_int($img_width)) {
-            if ($this->options['max_width'] && $img_width > $this->options['max_width'] ||
-                    $this->options['max_height'] && $img_height > $this->options['max_height']) {
+            if (($this->options['max_width'] && $img_width > $this->options['max_width']) ||
+				($this->options['max_height'] && $img_height > $this->options['max_height'])) {
                 $file->error = 'maxResolution';
                 return false;
             }
-            if ($this->options['min_width'] && $img_width < $this->options['min_width'] ||
-                    $this->options['min_height'] && $img_height < $this->options['min_height']) {
-                $file->error = 'minResolution';
-                return false;
-            }
+
+			if (($this->options['min_width'] && $img_width < $this->options['min_width']) ||
+				($this->options['min_height'] && $img_height < $this->options['min_height'])) {
+				$file->error = 'minResolution';
+				return false;
+			}
         }
         return true;
     }
 
     protected function upcount_name_callback($matches) {
-        $index = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
+        $index = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
         $ext = isset($matches[2]) ? $matches[2] : '';
         return ' ('.$index.')'.$ext;
     }
@@ -291,8 +292,11 @@ class UploadHandler
         if ($exif === false) {
             return false;
         }
-      	$orientation = intval(@$exif['Orientation']);
-      	if (!in_array($orientation, array(3, 6, 8))) { 
+		$orientation = 0;
+        if (!empty($exif['Orientation'])) {
+      		$orientation = (int) $exif['Orientation'];
+		}
+      	if (!in_array($orientation, array(3, 6, 8))) {
       	    return false;
       	}
       	$image = @imagecreatefromjpeg($file_path);
@@ -311,14 +315,14 @@ class UploadHandler
       	}
       	$success = imagejpeg($image, $file_path);
       	// Free up memory (imagedestroy does not delete files):
-      	@imagedestroy($image);
+      	imagedestroy($image);
       	return $success;
     }
 
     protected function handle_file_upload($uploaded_file, $name, $size, $type, $error, $index=0) {
         $file = new \stdClass();
         $file->name = $this->trim_file_name($name, $type, $index);
-        $file->size = intval($size);
+        $file->size = (int) $size;
         $file->type = $type;
         if ($this->validate($uploaded_file, $file, $error, $index)) {
             $this->handle_form_data($file, $index);
