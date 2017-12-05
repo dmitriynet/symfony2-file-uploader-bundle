@@ -2,6 +2,9 @@
 
 namespace PunkAve\FileUploaderBundle\Services;
 
+use GuzzleHttp\Psr7\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+
 class FileUploader
 {
     protected $options;
@@ -70,8 +73,7 @@ class FileUploader
      */
     public function handleFileUpload($options = array())
     {
-        if (!isset($options['folder']))
-        {
+        if (!isset($options['folder'])) {
             throw new \Exception("You must pass the 'folder' option to distinguish this set of files from others");
         }
 
@@ -98,23 +100,25 @@ class FileUploader
 
         $uploadDir = $filePath . '/' . $originals['folder'] . '/';
 
-        foreach ($sizes as &$s)
-        {
-			if (!mkdir($s['upload_dir'], 0777, true) && !is_dir($s['upload_dir'])) {
+        foreach ($sizes as &$s) {
+			if (!is_dir($s['upload_dir']) && !mkdir($s['upload_dir'], 0777, true)) {
 				throw new \Exception($s['upload_dir'] . "  folder does not created");
 			}
         }
 		unset($s);
 
-		if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+		if (!is_dir($uploadDir) && !mkdir($uploadDir, 0777, true)) {
 			throw new \Exception($uploadDir . "  folder does not created");
 		}
+
+		/** @var RequestStack $request */
+		$request = $options['request'];
 
         $upload_handler = new \PunkAve\FileUploaderBundle\BlueImp\UploadHandler(
             array(
                 'upload_dir' => $uploadDir, 
                 'upload_url' => $webPath . '/' . $originals['folder'] . '/', 
-                'script_url' => $options['request']->getUri(),
+                'script_url' => $request->getCurrentRequest()->getUri(),
                 'image_versions' => $sizes,
                 'accept_file_types' => $allowedExtensionsRegex,
                 'max_number_of_files' => $options['max_number_of_files'],
